@@ -1,5 +1,5 @@
 x-erpnext-backend-image: &erpnext_backend_image
-  image: frappe/erpnext-worker:${ERPNEXT_VERSION:?No ERPNext version set}
+  image: evendyx/erpnext-worker:${ERPNEXT_VERSION:?No ERPNext version set}
 
 services:
   configurator:

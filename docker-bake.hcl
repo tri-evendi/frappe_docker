@@ -2,7 +2,7 @@
 # Reference: https://github.com/docker/buildx/blob/master/docs/reference/buildx_bake.md
 
 variable "REGISTRY_USER" {
-    default = "frappe"
+    default = "evendyx"
 }
 
 variable "FRAPPE_VERSION" {
@@ -13,12 +13,20 @@ variable "ERPNEXT_VERSION" {
     default = "develop"
 }
 
+variable "PRESS_VERSION" {
+    default = "develop"
+}
+
 variable "FRAPPE_REPO" {
     default = "https://github.com/frappe/frappe"
 }
 
 variable "ERPNEXT_REPO" {
     default = "https://github.com/frappe/erpnext"
+}
+
+variable "PRESS_REPO" {
+    default = "https://github.com/tri-evendi/press"
 }
 
 variable "BENCH_REPO" {
@@ -52,8 +60,12 @@ group "erpnext" {
     targets = ["erpnext-worker", "erpnext-nginx"]
 }
 
+group "press" {
+    targets = ["press-worker", "press-nginx"]
+}
+
 group "default" {
-    targets = ["frappe", "erpnext"]
+    targets = ["frappe", "erpnext", "press"]
 }
 
 function "tag" {
@@ -70,9 +82,11 @@ target "default-args" {
     args = {
         FRAPPE_REPO = "${FRAPPE_REPO}"
         ERPNEXT_REPO = "${ERPNEXT_REPO}"
+        PRESS_REPO = "${PRESS_REPO}"
         BENCH_REPO = "${BENCH_REPO}"
         FRAPPE_VERSION = "${FRAPPE_VERSION}"
         ERPNEXT_VERSION = "${ERPNEXT_VERSION}"
+        PRESS_VERSION = "${PRESS_VERSION}"
         PYTHON_VERSION = can(regex("v13", "${ERPNEXT_VERSION}")) ? "3.9.9" : "3.10.5"
         NODE_VERSION = can(regex("v13", "${FRAPPE_VERSION}")) ? "14.19.3" : "16.18.0"
     }
@@ -83,6 +97,7 @@ target "frappe-worker" {
     context = "images/worker"
     target = "frappe"
     tags = tag("frappe-worker", "${FRAPPE_VERSION}")
+    platforms = ["linux/amd64"]
 }
 
 target "erpnext-worker" {
@@ -90,6 +105,15 @@ target "erpnext-worker" {
     context = "images/worker"
     target = "erpnext"
     tags =  tag("erpnext-worker", "${ERPNEXT_VERSION}")
+    platforms = ["linux/amd64"]
+}
+
+target "press-worker" {
+    inherits = ["default-args"]
+    context = "images/worker"
+    target = "press"
+    tags =  tag("press-worker", "${PRESS_VERSION}")
+    platforms = ["linux/amd64"]
 }
 
 target "frappe-nginx" {
@@ -97,6 +121,7 @@ target "frappe-nginx" {
     context = "images/nginx"
     target = "frappe"
     tags =  tag("frappe-nginx", "${FRAPPE_VERSION}")
+    platforms = ["linux/amd64"]
 }
 
 target "erpnext-nginx" {
@@ -104,6 +129,15 @@ target "erpnext-nginx" {
     context = "images/nginx"
     target = "erpnext"
     tags =  tag("erpnext-nginx", "${ERPNEXT_VERSION}")
+    platforms = ["linux/amd64"]
+}
+
+target "press-nginx" {
+    inherits = ["default-args"]
+    context = "images/nginx"
+    target = "press"
+    tags =  tag("press-nginx", "${PRESS_VERSION}")
+    platforms = ["linux/amd64"]
 }
 
 target "frappe-socketio" {

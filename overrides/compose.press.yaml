@@ -1,0 +1,31 @@
+x-press-backend-image: &press_backend_image
+  image: evendyx/press-worker:${PRESS_VERSION:?No Press version set}
+  volumes:
+    - .clones:/home/frappe/frappe-bench/.clones
+    - .docker-builds:/home/frappe/frappe-bench/.docker-builds
+
+services:
+  configurator:
+    <<: *press_backend_image
+
+  backend:
+    <<: *press_backend_image
+
+  frontend:
+    image: evendyx/press-nginx:${PRESS_VERSION}
+
+  queue-short:
+    <<: *press_backend_image
+
+  queue-default:
+    <<: *press_backend_image
+
+  queue-long:
+    <<: *press_backend_image
+
+  scheduler:
+    <<: *press_backend_image
+
+volumes:
+  .clones:
+  .docker-builds:

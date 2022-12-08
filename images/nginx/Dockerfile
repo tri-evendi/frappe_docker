@@ -1,3 +1,8 @@
+# syntax=docker/dockerfile:1.3
+
+ARG PYTHON_VERSION
+FROM python:${PYTHON_VERSION}-slim-bullseye as base
+
 FROM frappe/bench:latest as assets_builder
 
 ARG FRAPPE_VERSION
@@ -10,6 +15,25 @@ RUN PYENV_VERSION=${PYTHON_VERSION} bench init --version=${FRAPPE_VERSION} --fra
 
 WORKDIR /home/frappe/frappe-bench
 
+FROM base as build_deps
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    # Install git here because it is not required in production
+    git \
+    # gcc and g++ are required for building different packages across different versions
+    # of Frappe and ERPNext and also on different platforms (for example, linux/arm64).
+    # It is safe to install build deps even if they are not required
+    # because they won't be included in final images.
+    gcc \
+    g++ \
+    # golang compiler is required for installing reflex
+    golang \
+    # nano is required for debugging
+    nano \
+    # Make is required to build wheels of ERPNext deps in develop branch for linux/arm64
+    make \
+    && rm -rf /var/lib/apt/lists/*
 
 FROM assets_builder as frappe_assets
 
@@ -26,6 +50,16 @@ ARG ERPNEXT_VERSION
 ARG ERPNEXT_REPO=https://github.com/frappe/erpnext
 RUN bench get-app --branch=${ERPNEXT_VERSION} --skip-assets --resolve-deps erpnext ${ERPNEXT_REPO}\
     && if [ -z "${ERPNEXT_VERSION##*v14*}" ] || [ "$ERPNEXT_VERSION" = "develop" ]; then \
+        export BUILD_OPTS="--production"; \
+    fi \
+    && FRAPPE_ENV=production bench build --verbose --hard-link ${BUILD_OPTS}
+
+FROM erpnext_assets as press_assets
+
+ARG PRESS_VERSION
+ARG PRESS_REPO=https://github.com/tri-evendi/press
+RUN bench get-app --branch=${PRESS_VERSION} --skip-assets --resolve-deps press ${PRESS_REPO}\
+    && if [ "$PRESS_VERSION" = "develop" ]; then \
         export BUILD_OPTS="--production"; \
     fi \
     && FRAPPE_ENV=production bench build --verbose --hard-link ${BUILD_OPTS}
@@ -56,3 +90,7 @@ USER 1000
 FROM frappe as erpnext
 
 COPY --from=erpnext_assets /home/frappe/frappe-bench/sites/assets /usr/share/nginx/html/assets
+
+FROM frappe as press
+
+COPY --from=press_assets /home/frappe/frappe-bench/sites/assets /usr/share/nginx/html/assets
