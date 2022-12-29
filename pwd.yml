@@ -2,7 +2,7 @@ version: "3"
 
 services:
   backend:
-    image: frappe/erpnext-worker:v14.10.0
+    image: frappe/erpnext-worker:v14.11.1
     deploy:
       restart_policy:
         condition: on-failure
@@ -11,7 +11,7 @@ services:
       - assets:/home/frappe/frappe-bench/sites/assets
 
   configurator:
-    image: frappe/erpnext-worker:v14.10.0
+    image: frappe/erpnext-worker:v14.11.1
     command:
       - configure.py
     environment:
@@ -25,7 +25,7 @@ services:
       - sites:/home/frappe/frappe-bench/sites
 
   create-site:
-    image: frappe/erpnext-worker:v14.10.0
+    image: frappe/erpnext-worker:v14.11.1
     deploy:
       restart_policy:
         condition: on-failure
@@ -76,7 +76,7 @@ services:
       - db-data:/var/lib/mysql
 
   frontend:
-    image: frappe/erpnext-nginx:v14.10.0
+    image: frappe/erpnext-nginx:v14.11.1
     deploy:
       restart_policy:
         condition: on-failure
@@ -87,6 +87,8 @@ services:
       UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
       UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
       UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMOUT: 120
+      CLIENT_MAX_BODY_SIZE: 50m
     volumes:
       - sites:/usr/share/nginx/html/sites
       - assets:/usr/share/nginx/html/assets
@@ -94,7 +96,7 @@ services:
       - "8080:8080"
 
   queue-default:
-    image: frappe/erpnext-worker:v14.10.0
+    image: frappe/erpnext-worker:v14.11.1
     deploy:
       restart_policy:
         condition: on-failure
@@ -108,7 +110,7 @@ services:
       - assets:/home/frappe/frappe-bench/sites/assets
 
   queue-long:
-    image: frappe/erpnext-worker:v14.10.0
+    image: frappe/erpnext-worker:v14.11.1
     deploy:
       restart_policy:
         condition: on-failure
@@ -122,7 +124,7 @@ services:
       - assets:/home/frappe/frappe-bench/sites/assets
 
   queue-short:
-    image: frappe/erpnext-worker:v14.10.0
+    image: frappe/erpnext-worker:v14.11.1
     deploy:
       restart_policy:
         condition: on-failure
@@ -160,7 +162,7 @@ services:
       - redis-socketio-data:/data
 
   scheduler:
-    image: frappe/erpnext-worker:v14.10.0
+    image: frappe/erpnext-worker:v14.11.1
     deploy:
       restart_policy:
         condition: on-failure
@@ -172,7 +174,7 @@ services:
       - assets:/home/frappe/frappe-bench/sites/assets
 
   websocket:
-    image: frappe/frappe-socketio:v14.18.0
+    image: frappe/frappe-socketio:v14.21.0
     deploy:
       restart_policy:
         condition: on-failure
