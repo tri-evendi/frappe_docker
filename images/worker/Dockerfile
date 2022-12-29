@@ -21,6 +21,8 @@ RUN chown -R frappe:frappe /home/frappe
 RUN chmod -R g+rwx /home/frappe
 USER frappe
 RUN mkdir -p /home/frappe/frappe-bench/apps /home/frappe/frappe-bench/logs /home/frappe/frappe-bench/sites /home/frappe/frappe-bench/config
+RUN mkdir -p /home/frappe/.certbot/webroot /home/frappe/.certbot/live
+RUN chmod -R g+rwx /home/frappe/.certbot
 WORKDIR /home/frappe/frappe-bench
 
 USER root
