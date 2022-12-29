@@ -44,17 +44,17 @@ RUN bench setup requirements \
     && FRAPPE_ENV=production bench build --verbose --hard-link ${BUILD_OPTS}
 
 
-FROM assets_builder as erpnext_assets
+# FROM assets_builder as erpnext_assets
 
-ARG ERPNEXT_VERSION
-ARG ERPNEXT_REPO=https://github.com/frappe/erpnext
-RUN bench get-app --branch=${ERPNEXT_VERSION} --skip-assets --resolve-deps erpnext ${ERPNEXT_REPO}\
-    && if [ -z "${ERPNEXT_VERSION##*v14*}" ] || [ "$ERPNEXT_VERSION" = "develop" ]; then \
-        export BUILD_OPTS="--production"; \
-    fi \
-    && FRAPPE_ENV=production bench build --verbose --hard-link ${BUILD_OPTS}
+# ARG ERPNEXT_VERSION
+# ARG ERPNEXT_REPO=https://github.com/frappe/erpnext
+# RUN bench get-app --branch=${ERPNEXT_VERSION} --skip-assets --resolve-deps erpnext ${ERPNEXT_REPO}\
+#     && if [ -z "${ERPNEXT_VERSION##*v14*}" ] || [ "$ERPNEXT_VERSION" = "develop" ]; then \
+#         export BUILD_OPTS="--production"; \
+#     fi \
+#     && FRAPPE_ENV=production bench build --verbose --hard-link ${BUILD_OPTS}
 
-FROM erpnext_assets as press_assets
+FROM assets_builder as press_assets
 
 ARG PRESS_VERSION
 ARG PRESS_REPO=https://github.com/tri-evendi/press
@@ -87,9 +87,9 @@ COPY --from=frappe_assets /home/frappe/frappe-bench/sites/assets /usr/share/ngin
 USER 1000
 
 
-FROM frappe as erpnext
+# FROM frappe as erpnext
 
-COPY --from=erpnext_assets /home/frappe/frappe-bench/sites/assets /usr/share/nginx/html/assets
+# COPY --from=erpnext_assets /home/frappe/frappe-bench/sites/assets /usr/share/nginx/html/assets
 
 FROM frappe as press
 

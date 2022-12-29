@@ -22,7 +22,7 @@ RUN chmod -R g+rwx /home/frappe
 USER frappe
 RUN mkdir -p /home/frappe/.certbot/webroot /home/frappe/.certbot/live
 RUN chmod -R g+rwx /home/frappe/.certbot
-RUN mkdir -p /home/frappe/frappe-bench/apps /home/frappe/frappe-bench/logs /home/frappe/frappe-bench/sites
+RUN mkdir -p /home/frappe/frappe-bench/apps /home/frappe/frappe-bench/logs /home/frappe/frappe-bench/sites /home/frappe/frappe-bench/config
 WORKDIR /home/frappe/frappe-bench
 
 USER root
@@ -65,20 +65,20 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     && mkdir -p /home/frappe/frappe-bench/sites/assets/frappe/node_modules \
     && ln -s /home/frappe/frappe-bench/sites/assets/frappe/node_modules /home/frappe/frappe-bench/apps/frappe/node_modules
 
-FROM frappe_builder as erpnext_builder
+# FROM frappe_builder as erpnext_builder
 
-ARG PAYMENTS_VERSION=develop
-ARG PAYMENTS_REPO=https://github.com/frappe/payments
-ARG ERPNEXT_VERSION
-ARG ERPNEXT_REPO=https://github.com/frappe/erpnext
-RUN --mount=type=cache,target=/root/.cache/pip \
-    if [ "$ERPNEXT_VERSION" = "v14" ] || [ "$ERPNEXT_VERSION" = "develop" ]; then \
-        git clone --depth 1 -b ${PAYMENTS_VERSION} ${PAYMENTS_REPO} apps/payments && install-app payments; \
-    fi \
-    && git clone --depth 1 -b ${ERPNEXT_VERSION} ${ERPNEXT_REPO} apps/erpnext \
-    && install-app erpnext
+# ARG PAYMENTS_VERSION=develop
+# ARG PAYMENTS_REPO=https://github.com/frappe/payments
+# ARG ERPNEXT_VERSION
+# ARG ERPNEXT_REPO=https://github.com/frappe/erpnext
+# RUN --mount=type=cache,target=/root/.cache/pip \
+#     if [ "$ERPNEXT_VERSION" = "v14" ] || [ "$ERPNEXT_VERSION" = "develop" ]; then \
+#         git clone --depth 1 -b ${PAYMENTS_VERSION} ${PAYMENTS_REPO} apps/payments && install-app payments; \
+#     fi \
+#     && git clone --depth 1 -b ${ERPNEXT_VERSION} ${ERPNEXT_REPO} apps/erpnext \
+#     && install-app erpnext
 
-FROM erpnext_builder as press_builder
+FROM frappe_builder as press_builder
 
 ARG PRESS_VERSION
 ARG PRESS_REPO=https://github.com/tri-evendi/press
@@ -160,14 +160,14 @@ USER frappe
 
 
 # Split frappe and erpnext to reduce image size (because of frappe-bench/env/ directory)
-FROM configured_base as erpnext
+# FROM configured_base as erpnext
 
-COPY --from=erpnext_builder --chown=frappe:frappe /home/frappe/frappe-bench/apps /home/frappe/frappe-bench/apps
-COPY --from=erpnext_builder --chown=frappe:frappe /home/frappe/frappe-bench/env /home/frappe/frappe-bench/env
-COPY --from=erpnext_builder --chown=frappe:frappe /home/frappe/frappe-bench/sites/apps.txt /home/frappe/frappe-bench/sites/
+# COPY --from=erpnext_builder --chown=frappe:frappe /home/frappe/frappe-bench/apps /home/frappe/frappe-bench/apps
+# COPY --from=erpnext_builder --chown=frappe:frappe /home/frappe/frappe-bench/env /home/frappe/frappe-bench/env
+# COPY --from=erpnext_builder --chown=frappe:frappe /home/frappe/frappe-bench/sites/apps.txt /home/frappe/frappe-bench/sites/
 
 
-USER frappe
+# USER frappe
 
 FROM configured_base as press
 

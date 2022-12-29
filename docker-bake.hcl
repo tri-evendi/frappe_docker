@@ -2,7 +2,7 @@
 # Reference: https://github.com/docker/buildx/blob/master/docs/reference/buildx_bake.md
 
 variable "REGISTRY_USER" {
-    default = "evendyx"
+    default = "tandigital"
 }
 
 variable "FRAPPE_VERSION" {
