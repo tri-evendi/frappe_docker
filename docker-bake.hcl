@@ -5,6 +5,10 @@ variable "REGISTRY_USER" {
     default = "tandigital"
 }
 
+variable "IMAGE_TAG" {
+    default = "1.0.1"
+}
+
 variable "FRAPPE_VERSION" {
     default = "develop"
 }
@@ -14,6 +18,10 @@ variable "ERPNEXT_VERSION" {
 }
 
 variable "PRESS_VERSION" {
+    default = "develop"
+}
+
+variable "HRMS_VERSION" {
     default = "develop"
 }
 
@@ -27,6 +35,10 @@ variable "ERPNEXT_REPO" {
 
 variable "PRESS_REPO" {
     default = "https://github.com/tri-evendi/press"
+}
+
+variable "HRMS_REPO" {
+    default = "https://github.com/frappe/hrms"
 }
 
 variable "BENCH_REPO" {
@@ -64,8 +76,12 @@ group "press" {
     targets = ["press-worker", "press-nginx"]
 }
 
+group "hrms" {
+    targets = ["hrms-worker", "hrms-nginx"]
+}
+
 group "default" {
-    targets = ["frappe", "erpnext", "press"]
+    targets = ["frappe", "erpnext"]
 }
 
 function "tag" {
@@ -87,6 +103,7 @@ target "default-args" {
         FRAPPE_VERSION = "${FRAPPE_VERSION}"
         ERPNEXT_VERSION = "${ERPNEXT_VERSION}"
         PRESS_VERSION = "${PRESS_VERSION}"
+        HRMS_VERSION = "${HRMS_VERSION}"
         PYTHON_VERSION = can(regex("v13", "${ERPNEXT_VERSION}")) ? "3.9.9" : "3.10.5"
         NODE_VERSION = can(regex("v13", "${FRAPPE_VERSION}")) ? "14.19.3" : "16.18.0"
     }
@@ -116,6 +133,14 @@ target "press-worker" {
     platforms = ["linux/amd64"]
 }
 
+target "hrms-worker" {
+    inherits = ["default-args"]
+    context = "images/worker"
+    target = "hrms"
+    tags =  tag("hrms-worker", "${IMAGE_TAG}")
+    platforms = ["linux/amd64"]
+}
+
 target "frappe-nginx" {
     inherits = ["default-args"]
     context = "images/nginx"
@@ -137,6 +162,14 @@ target "press-nginx" {
     context = "images/nginx"
     target = "press"
     tags =  tag("press-nginx", "${PRESS_VERSION}")
+    platforms = ["linux/amd64"]
+}
+
+target "hrms-nginx" {
+    inherits = ["default-args"]
+    context = "images/nginx"
+    target = "hrms"
+    tags =  tag("hrms-nginx", "${IMAGE_TAG}")
     platforms = ["linux/amd64"]
 }
 

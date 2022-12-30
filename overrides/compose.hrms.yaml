@@ -1,0 +1,27 @@
+x-hrms-backend-image: &hrms_backend_image
+  image: tandigital/hrms-worker:${HRMS_VERSION:?No HRMS_VERSION version set}
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - assets:/home/frappe/frappe-bench/sites/assets:ro
+
+services:
+  configurator:
+    <<: *hrms_backend_image
+
+  backend:
+    <<: *hrms_backend_image
+
+  frontend:
+    image: tandigital/hrms-nginx:${HRMS_VERSION}
+
+  queue-short:
+    <<: *hrms_backend_image
+
+  queue-default:
+    <<: *hrms_backend_image
+
+  queue-long:
+    <<: *hrms_backend_image
+
+  scheduler:
+    <<: *hrms_backend_image

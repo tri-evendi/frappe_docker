@@ -45,6 +45,10 @@ Also, there's docs to help with deployment:
   - [port based multi tenancy](docs/port-based-multi-tenancy.md)
 - [Troubleshoot](docs/troubleshoot.md)
 
+# Custom images
+
+Run `docker buildx bake -f docker-bake.hcl your-images --no-cache` to build custom images.
+
 # Custom app
 
 Learn how to containerize your custom Frappe app(s) in [this guide](custom_app/README.md).

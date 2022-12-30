@@ -10,6 +10,7 @@ x-backend-defaults: &backend_defaults
     - sites:/home/frappe/frappe-bench/sites
     - assets:/home/frappe/frappe-bench/sites/assets:ro
 
+version: "3.8"
 services:
   configurator:
     <<: *backend_defaults

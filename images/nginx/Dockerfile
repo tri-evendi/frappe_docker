@@ -28,7 +28,7 @@ RUN apt-get update \
     gcc \
     g++ \
     # golang compiler is required for installing reflex
-    golang \
+    # golang \
     # nano is required for debugging
     nano \
     # Make is required to build wheels of ERPNext deps in develop branch for linux/arm64
@@ -44,15 +44,15 @@ RUN bench setup requirements \
     && FRAPPE_ENV=production bench build --verbose --hard-link ${BUILD_OPTS}
 
 
-# FROM assets_builder as erpnext_assets
+FROM assets_builder as erpnext_assets
 
-# ARG ERPNEXT_VERSION
-# ARG ERPNEXT_REPO=https://github.com/frappe/erpnext
-# RUN bench get-app --branch=${ERPNEXT_VERSION} --skip-assets --resolve-deps erpnext ${ERPNEXT_REPO}\
-#     && if [ -z "${ERPNEXT_VERSION##*v14*}" ] || [ "$ERPNEXT_VERSION" = "develop" ]; then \
-#         export BUILD_OPTS="--production"; \
-#     fi \
-#     && FRAPPE_ENV=production bench build --verbose --hard-link ${BUILD_OPTS}
+ARG ERPNEXT_VERSION
+ARG ERPNEXT_REPO=https://github.com/frappe/erpnext
+RUN bench get-app --branch=${ERPNEXT_VERSION} --skip-assets --resolve-deps erpnext ${ERPNEXT_REPO}\
+    && if [ -z "${FRAPPE_VERSION##*v14*}" ] || [ "$ERPNEXT_VERSION" = "develop" ]; then \
+        export BUILD_OPTS="--production"; \
+    fi \
+    && FRAPPE_ENV=production bench build --verbose --hard-link ${BUILD_OPTS}
 
 FROM assets_builder as press_assets
 
@@ -60,6 +60,16 @@ ARG PRESS_VERSION
 ARG PRESS_REPO=https://github.com/tri-evendi/press
 RUN bench get-app --branch=${PRESS_VERSION} --skip-assets --resolve-deps press ${PRESS_REPO}\
     && if [ "$PRESS_VERSION" = "develop" ]; then \
+        export BUILD_OPTS="--production"; \
+    fi \
+    && FRAPPE_ENV=production bench build --verbose --hard-link ${BUILD_OPTS}
+
+FROM assets_builder as hrms_assets
+
+ARG HRMS_VERSION
+ARG HRMS_REPO=https://github.com/frappe/hrms
+RUN bench get-app --branch=${HRMS_VERSION} --skip-assets --resolve-deps hrms ${HRMS_REPO} \
+    && if [ "$HRMS_VERSION" = "develop" ]; then \
         export BUILD_OPTS="--production"; \
     fi \
     && FRAPPE_ENV=production bench build --verbose --hard-link ${BUILD_OPTS}
@@ -91,10 +101,14 @@ COPY --from=frappe_assets /home/frappe/frappe-bench/sites/assets /usr/share/ngin
 USER 1000
 
 
-# FROM frappe as erpnext
+FROM frappe as erpnext
 
-# COPY --from=erpnext_assets /home/frappe/frappe-bench/sites/assets /usr/share/nginx/html/assets
+COPY --from=erpnext_assets /home/frappe/frappe-bench/sites/assets /usr/share/nginx/html/assets
 
 FROM frappe as press
 
 COPY --from=press_assets /home/frappe/frappe-bench/sites/assets /usr/share/nginx/html/assets
+
+FROM frappe as hrms
+
+COPY --from=hrms_assets /home/frappe/frappe-bench/sites/assets /usr/share/nginx/html/assets
